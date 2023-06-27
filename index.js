@@ -12,7 +12,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use("/v1", emailRoute)
 
-app.listen(3000, ()=>{
+app.listen(process.env.PORT || 3000, ()=>{
   console.log('Server is running')
 })
 
