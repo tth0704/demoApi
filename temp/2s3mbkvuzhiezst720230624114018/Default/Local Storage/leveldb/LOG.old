@@ -1,0 +1,8 @@
+2023/06/24-23:56:14.833 a6a0 Reusing MANIFEST D:\Javascript\requestTest\temp\2s3mbkvuzhiezst720230624114018\Default\Local Storage\leveldb/MANIFEST-000001
+2023/06/24-23:56:14.834 a6a0 Recovering log #3
+2023/06/24-23:56:14.834 a6a0 Level-0 table #3: started
+2023/06/24-23:56:14.857 a6a0 Level-0 table #3: 76599 bytes OK
+2023/06/24-23:56:14.858 a6a0 Recovering log #4
+2023/06/24-23:56:14.860 a6a0 Reusing old log D:\Javascript\requestTest\temp\2s3mbkvuzhiezst720230624114018\Default\Local Storage\leveldb/000004.log 
+2023/06/24-23:56:14.873 a6a0 Delete type=0 #3
+2023/06/24-23:56:14.873 a6a0 Delete type=2 #5
