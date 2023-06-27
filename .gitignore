@@ -1,4 +1,5 @@
 /node_modules/
+/temp/
 getMail.js
 getMail2.js
 getmessagesRu.js
