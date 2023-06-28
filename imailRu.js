@@ -8,8 +8,6 @@ const imailRu = {
       method: 'post',
       url: 'https://tempimail.org/messages',
       headers: { 
-        Accept: '*/*', 
-        'Accept-Language': 'vi', 
         Connection: 'keep-alive', 
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 
          'Cookie': `${cookies.join('; ')}`,
@@ -55,9 +53,6 @@ const imailRu = {
   getTempimail: async function (){
   return new Promise((resolve, reject) =>{
     const headers = {
-      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'Accept-Language': 'vi',
       Connection: 'keep-alive',
       Dnt: '1',
       'Sec-Ch-Ua': '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"',
@@ -76,13 +71,14 @@ const imailRu = {
 
         const $ = cheerio.load(response.data);
         const setCookieHeader = response.headers['set-cookie'];
-        //console.log(`setCookieHeader`, setCookieHeader)
+        //console.log(`response.data`, response.data)
         const csrfToken = $('meta[name="csrf-token"]').attr('content');
         // if (csrfToken) {
         //   console.log('CSRF Token:', csrfToken);
         // } else {
         //   console.log('CSRF token not found');
         // }
+        //console.log(`2321321321`,{csrfToken: csrfToken, cookies: setCookieHeader})
         resolve({csrfToken: csrfToken, cookies: setCookieHeader});
       })
       .catch(error => {
@@ -98,7 +94,6 @@ const imailRu = {
       const headers = {
         Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
         'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'vi',
         Connection: 'keep-alive',
         Dnt: '1',
         'Sec-Ch-Ua': '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"',
@@ -162,13 +157,77 @@ const imailRu = {
       console.error(`error`, error);
       throw error;
     }
+  },
+  getMohmal: async function getMohmal(cookie = null, path = null){
+    try {
+      var config = {
+        method: 'get',
+        maxRedirects: 0,
+        validateStatus: false,
+        url: 'https://www.mohmal.com/en/create/random',
+        headers: { 
+         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+         }
+      };
+      cookie ? (config.headers.Cookie = `connect.sid=${cookie}` , config.url = 'https://www.mohmal.com/en/inbox') : ""
+      path ? config.url = path : "";
+  
+      const info = {};
+      const messages = [];
+      const response = await axios(config)
+      const $ = cheerio.load(response.data)
+   
+      if (!cookie) {
+      const setCookieHeader = response.headers['set-cookie'];
+      const matches = setCookieHeader[0].match(/connect\.sid=([^;]+)/);
+      const connectSid = matches[1];
+  
+      const email = await getMohmal(connectSid)
+      info.email = JSON.parse(email).email
+      info.id = connectSid
+      return JSON.stringify(info);
+      }else if (!path) {
+      const email = $('#email div[class="email"]').attr('data-email')
+      if (email) {
+        info.email = email
+        const idMessages = $('#inbox-table >tbody >tr')
+        for (let i = 0; i < idMessages.length; i++) {
+          const tr = $(idMessages[i])
+          const id = tr.attr('data-msg-id');
+          if (!id) {
+            continue;
+          }
+          const subject = tr.find('td.subject').text()
+          const time = tr.find('td.time').text()
+          const sender = tr.find('td.sender').text()
+  
+          const content = await getMohmal(cookie,`https://www.mohmal.com/en/message/${id}` )
+          const infoMesages = {subject: subject, time: time, sender: sender, content: content}
+          messages.push(infoMesages)
+        }
+      }else{
+        info.email = "Expired email"
+      }
+      info.messages = messages
+      return JSON.stringify(info);
+      }else{
+      const content = $('div[dir="ltr"]').html()
+      return content;
+      }
+  
+    } catch (error) {
+      console.log(error);
+      return null
+    }
+  
+    
   }
 }
 
 async function test(){
  let info = await imailRu.getTempimail()
-let mesages = await imailRu.getMessagesFromTempimail(info.csrfToken, info.cookies)
-console.log(mesages.data)
+//let mesages = await imailRu.getMessagesFromTempimail(info.csrfToken, info.cookies)
+//console.log(mesages.data)
 }
 //test();
 

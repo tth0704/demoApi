@@ -7,4 +7,7 @@ router.get('/tempimail/:id', emailControllers.getMessagesFromTempimail)
 //generator.email
 router.get('/generator', emailControllers.getGenerator)
 router.get('/generator/:email', emailControllers.getMessagesFromGenerator)
+//Mohmal.com
+router.get('/mohmal', emailControllers.getMohmal)
+router.get('/mohmal/:id', emailControllers.getMessagesFromMohmal)
 module.exports = router;

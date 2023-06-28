@@ -28,10 +28,6 @@ const emailControllers = {
     try {
       const info = await imailRu.getGenerator();
       const dataInfo = JSON.parse(info)
-      const email = dataInfo.email
-      data[email] = {
-        email: email,
-      }
       res.status(200).json(dataInfo)
     } catch (error) {
       res.status(500).json(error)
@@ -47,7 +43,23 @@ const emailControllers = {
       res.status(500).json(error)
     }
   },
-
+  getMohmal: async (req, res) =>{
+    try {
+      const email = await imailRu.getMohmal()
+      res.status(200).json(JSON.parse(email))
+    } catch (error) {
+      res.status(500).json(error)
+    }
+  },
+  getMessagesFromMohmal: async (req, res) =>{
+    const id = req.params.id
+    try {
+      const email = await imailRu.getMohmal(id)
+      res.status(200).json(JSON.parse(email))
+    } catch (error) {
+      res.status(500).json(error)
+    }
+  }
 }
 
 module.exports = emailControllers;
