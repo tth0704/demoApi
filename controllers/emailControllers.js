@@ -8,6 +8,7 @@ const emailControllers = {
       DATA[data.id] = {
         cookies: data.cookie,
       }
+      console.log(data.mailbox, data.id)
       res.status(200).json({ mailbox: data.mailbox, id: data.id})
 
     } catch (error) {
