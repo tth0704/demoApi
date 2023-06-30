@@ -1,77 +1,40 @@
 var axios = require('axios');
 const cheerio = require('cheerio');
 const imailRu = {
-  getMessagesFromTempimail: async function (csrfToken, cookies) {
-  return new Promise((resolve, reject)=>{
-    var data = `_token=${csrfToken}&captcha=`;
-    var config = {
-      method: 'post',
-      url: 'https://tempimail.org/messages',
-      headers: { 
-        Connection: 'keep-alive', 
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 
-         'Cookie': `${cookies.join('; ')}`,
-        DNT: '1', 
-        'Origin': 'https://tempimail.org', 
-        'Referer': 'https://tempimail.org/ru', 
-        'Sec-Fetch-Dest': 'empty', 
-        'Sec-Fetch-Mode': 'cors', 
-        'Sec-Fetch-Site': 'same-origin', 
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36', 
-        'X-Requested-With': 'XMLHttpRequest', 
-        'sec-ch-ua': '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"', 
-        'sec-ch-ua-mobile': '?0', 
-        'sec-ch-ua-platform': '"Windows"'
-      },
-      data : data
-    };
-    axios(config)
-    .then(function (response) {
-      const data = JSON.stringify(response.data)
-      const $ = cheerio.load(response.data);
-      const setCookieHeader = response.headers['set-cookie'];
-      resolve({data: data, cookies: setCookieHeader})
-    })
-    .catch(function (error) {
-      reject(error);
-      console.log(error);
-    });
-  })
-  
-}, 
-
-  getTempimail: async function (){
-  return new Promise((resolve, reject) =>{
-    const headers = {
-      Connection: 'keep-alive',
-      Dnt: '1',
-      'Sec-Ch-Ua': '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"',
-      'Sec-Ch-Ua-Mobile': '?0',
-      'Sec-Ch-Ua-Platform': '"Windows"',
-      'Sec-Fetch-Dest': 'document',
-      'Sec-Fetch-Mode': 'navigate',
-      'Sec-Fetch-Site': 'none',
-      'Sec-Fetch-User': '?1',
-      'Upgrade-Insecure-Requests': '1',
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
-    };
+  getTempimail: async function getTempimail(Cookie = null, CsrfToken = null, callBack = false){
+    try {
+      var config = {
+        method: 'get',
+        url: 'https://tempimail.org/ru',
+        headers: { 
+         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        },
+      };
+      Cookie ? (config.method = 'post', config.headers.cookie = Cookie, config.data = `_token=${CsrfToken}&captcha=`, config.url = `https://tempimail.org/messages`) : "";
     
-    axios.get('https://tempimail.org/ru', { headers })
-      .then(response => {
-
-        const $ = cheerio.load(response.data);
-        const setCookieHeader = response.headers['set-cookie'];
+      const response = await axios(config)
+      const data = JSON.stringify(response.data)
+      const $ = cheerio.load(response.data)
+      const setCookieHeader = response.headers['set-cookie'];
+      const desiredCookies = setCookieHeader
+      .flatMap(cookies => cookies.split(';'))
+      .filter(cookie => /^((XSRF-TOKEN|tempimail_session|email)=)/.test(cookie.trim())).join('; ');
+     
+      if (!Cookie) {
         const csrfToken = $('meta[name="csrf-token"]').attr('content');
-        resolve({csrfToken: csrfToken, cookies: setCookieHeader});
-      })
-      .catch(error => {
-        reject(error)
-        console.error(error);
-      });
-  })
-
-},
-
+        const info = await getTempimail(desiredCookies, csrfToken, true)
+        return JSON.stringify({mailbox: info.data.mailbox, id: csrfToken, cookie: info.cookie});
+  
+      }else if(callBack){
+        return {data: response.data, cookie: desiredCookies}
+      }else{
+        return data
+      }
+    
+    } catch (error) {
+      console.log(error);
+    }
+  },
   getGenerator: async function getEmail(email = null, path = null) {
     try {
       const headers = {

@@ -4,12 +4,11 @@ const emailControllers = {
   getTempimail: async (req, res) =>{
     try {
       const info = await imailRu.getTempimail();
-
-      const email = await imailRu.getMessagesFromTempimail(info.csrfToken, info.cookies)
-      DATA[info.csrfToken] = {
-        cookies: email.cookies,
+      const data = JSON.parse(info)
+      DATA[data.id] = {
+        cookies: data.cookie,
       }
-      res.status(200).json({ data: JSON.parse(email.data), id: info.csrfToken})
+      res.status(200).json({ mailbox: data.mailbox, id: data.id})
 
     } catch (error) {
       res.status(500).json(error)
@@ -18,8 +17,8 @@ const emailControllers = {
   getMessagesFromTempimail: async (req, res) =>{
     const id = req.params.id //req.query.id -- ?id=999
     if (id in DATA) {
-      const email = await imailRu.getMessagesFromTempimail(id, DATA[id].cookies)
-      res.status(200).json({ data: JSON.parse(email.data)})
+      const info = await imailRu.getTempimail(DATA[id].cookies, id)
+      res.status(200).json(JSON.parse(info))
     } else {
       res.status(403).json(`ID "${id}" does not exist in data.`)
     }
