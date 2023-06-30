@@ -28,18 +28,8 @@ const imailRu = {
     axios(config)
     .then(function (response) {
       const data = JSON.stringify(response.data)
-      //console.log(data);
       const $ = cheerio.load(response.data);
       const setCookieHeader = response.headers['set-cookie'];
-      //console.log(`setCookieHeader`, setCookieHeader)
-
-      const csrfToken = $('meta[name="csrf-token"]').attr('content');
-      
-      // if (csrfToken) {
-      //   console.log('CSRF Token:', csrfToken);
-      // } else {
-      //   console.log('CSRF token not found');
-      // }
       resolve({data: data, cookies: setCookieHeader})
     })
     .catch(function (error) {
@@ -71,14 +61,7 @@ const imailRu = {
 
         const $ = cheerio.load(response.data);
         const setCookieHeader = response.headers['set-cookie'];
-        //console.log(`response.data`, response.data)
         const csrfToken = $('meta[name="csrf-token"]').attr('content');
-        // if (csrfToken) {
-        //   console.log('CSRF Token:', csrfToken);
-        // } else {
-        //   console.log('CSRF token not found');
-        // }
-        //console.log(`2321321321`,{csrfToken: csrfToken, cookies: setCookieHeader})
         resolve({csrfToken: csrfToken, cookies: setCookieHeader});
       })
       .catch(error => {
@@ -221,6 +204,81 @@ const imailRu = {
     }
   
     
+  },
+  getTempMailBox: async function getTempMailBox(Cookie = null, CsrfToken = null, callBack = false){
+    try {
+      var config = {
+        method: 'get',
+        maxRedirects: 0,
+        validateStatus: false,
+        url: 'https://temp-mailbox.com/en',
+        headers: { 
+         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        },
+      };
+      Cookie ? (config.method = 'post', config.headers.cookie = Cookie, config.data = `_token=${CsrfToken}&captcha=`, config.url = `https://temp-mailbox.com/messages`) : "";
+    
+      const response = await axios(config)
+      const data = JSON.stringify(response.data)
+      const $ = cheerio.load(response.data)
+      const setCookieHeader = response.headers['set-cookie'];
+      //console.log(`setCookieHeader`, setCookieHeader)
+      const desiredCookies = setCookieHeader
+      .flatMap(cookies => cookies.split(';'))
+      .filter(cookie => /^((XSRF-TOKEN|tempmailbox_session|email)=)/.test(cookie.trim())).join('; ');
+      //console.log(`desiredCookies`, desiredCookies)
+      if (!Cookie) {
+        const csrfToken = $('meta[name="csrf-token"]').attr('content');
+        //console.log(`csrfToken`, csrfToken)
+        const info = await getTempMailBox(desiredCookies, csrfToken, true)
+        return JSON.stringify({mailbox: info.data.mailbox, id: csrfToken, cookie: info.cookie});
+      }else if(callBack){
+        return {data: response.data, cookie: desiredCookies}
+      }else{
+        return data
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  },
+  getHotmail: async function getHotMail( Url = null,  Cookie = null){
+    try {
+      var config = {
+        method: 'get',
+        url:   'https://www.hot-mail.gq/mailbox',
+        headers: { 
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        }
+      };
+      Url ? config.url = Url  : ""; 
+      Cookie ? config.headers.cookie = Cookie : ""
+      const response = await axios(config)
+      const data = JSON.stringify(response.data);
+      const setCookieHeader = response.headers['set-cookie'];
+      const $ = cheerio.load(response.data)
+      const emailValue = $('#current-id').attr('value');
+  
+      const desiredCookies = setCookieHeader
+      .flatMap(cookies => cookies.split(';'))
+      .filter(cookie => /^((XSRF-TOKEN|hotmail_temporary_email_session)=)/.test(cookie.trim())).join('; ');
+      //console.log(`desiredCookies`, desiredCookies)
+  
+      //console.log(`email`, emailValue)
+      if (!Url) {
+        return JSON.stringify({email: emailValue});
+      }else if(!Cookie){
+        const cookieCustom = await getHotMail(`https://www.hot-mail.gq/css/custom.css`,  desiredCookies)//https://www.hot-mail.gq/ads/4
+        const cookieCustom2 = await getHotMail(`https://www.hot-mail.gq/mail/fetch?new=true`,  cookieCustom)
+        const info = await getHotMail(`https://www.hot-mail.gq/mail/fetch`,  cookieCustom)
+        return info
+      }else if(Url === `https://www.hot-mail.gq/mail/fetch`){
+        return data
+      }else{
+        return desiredCookies
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }
 }
 

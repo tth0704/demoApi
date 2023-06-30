@@ -10,4 +10,11 @@ router.get('/generator/:email', emailControllers.getMessagesFromGenerator)
 //Mohmal.com
 router.get('/mohmal', emailControllers.getMohmal)
 router.get('/mohmal/:id', emailControllers.getMessagesFromMohmal)
+///temp-mailbox.com
+router.get('/tempmailbox', emailControllers.getTempMailBox)
+router.get('/tempmailbox/:id', emailControllers.getMessagesFromTempMailBox)
+///hot-mail.gq
+router.get('/hotmail', emailControllers.getHotmail)
+router.get('/hotmail/:email', emailControllers.getMessagesFromHotmail)
+
 module.exports = router;
