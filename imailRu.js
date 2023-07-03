@@ -242,7 +242,53 @@ const imailRu = {
     } catch (error) {
       console.log(error);
     }
-  }
+  },
+  getNunber: async function getNumber(country = null, number = null){
+    try {
+      var config = {
+        method: 'get',
+        url: `https://temp-number.com${country ? `/countries/`+ country: `/`}`,
+        headers: { 
+         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        },
+      };
+      number ? config.url = `https://temp-number.com/temporary-numbers/${country? country: `United-States`}/${number}/1` : ""
+      const response = await axios(config)
+      const $ = cheerio.load(response.data)
+      const countryBox = $('div[class="col-xs-12 col-sm-4 col-md-4 col-lg-4 country-box"]')
+      const data = []
+      if (!country) {
+        const countries = $('div[class="col-xs-12 col-sm-4 col-md-4 col-lg-4"]')
+        for (let i = 0; i < countries.length; i++) {
+          const row = $(countries[i]).find('a').attr('href');
+          data.push(row.split('/')[1]);
+        }
+      }else if (!number) {
+        for (let i = 0; i < countryBox.length; i++) {
+          const row = $(countryBox[i]);
+          const timeTop = row.find('div.add_time-top').text();
+          const card = row.find('h4.card-title').text();
+          data.push({time: timeTop, card: card});
+        }
+      }else{
+        const mesages = $('div#messages div[class="direct-chat-msg left"]')
+        for (let i = 0; i < mesages.length; i++) {
+          const row = $(mesages[i]);
+          const from = row.find('span.direct-chat-name').text()
+          const time =  row.find('time.timeago.direct-chat-timestamp.pull-left').text()
+          const content = row.find('div.direct-chat-text').text()
+          data.push({mesages: i+1, from: from, time: time, content: content });
+        }
+        
+      }
+      
+    return JSON.stringify({data: data})
+    } catch (error) {
+      console.log(error);
+    }
+  
+    
+  } 
 }
 
 async function test(){

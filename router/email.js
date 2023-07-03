@@ -17,4 +17,8 @@ router.get('/tempmailbox/:id', emailControllers.getMessagesFromTempMailBox)
 router.get('/hotmail', emailControllers.getHotmail)
 router.get('/hotmail/:email', emailControllers.getMessagesFromHotmail)
 
+//https://temp-number.com/
+router.get('/number', emailControllers.getCountries )
+router.get('/number/:country', emailControllers.getNumber )
+router.get('/number/:country/:number', emailControllers.getMessagesFromNumber )
 module.exports = router;

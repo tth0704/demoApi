@@ -8,6 +8,7 @@ const emailControllers = {
       DATA[data.id] = {
         cookies: data.cookie,
       }
+      console.log(data.mailbox, data.id)
       res.status(200).json({ mailbox: data.mailbox, id: data.id})
 
     } catch (error) {
@@ -99,7 +100,34 @@ const emailControllers = {
     } catch (error) {
       res.status(500).json(error)
     }
-  }
+  },
+  getCountries: async (req, res) =>{
+    try {
+      const countries = await imailRu.getNunber();
+      res.status(200).json(JSON.parse(countries))
+    } catch (error) {
+      res.status(500).json(error)
+    }
+  },
+  getNumber: async (req, res) =>{
+    try {
+      const country = req.params.country
+      const numbers = await imailRu.getNunber(country);
+      res.status(200).json(JSON.parse(numbers))
+    } catch (error) {
+      res.status(500).json(error)
+    }
+  },
+  getMessagesFromNumber: async (req, res) =>{
+    try {
+      const country = req.params.country
+      const number = req.params.number
+      const numbers = await imailRu.getNunber(country, number);
+      res.status(200).json(JSON.parse(numbers))
+    } catch (error) {
+      res.status(500).json(error)
+    }
+  },
 }
 
 module.exports = emailControllers;
