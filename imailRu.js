@@ -248,9 +248,18 @@ const imailRu = {
       var config = {
         method: 'get',
         url: `https://temp-number.com${country ? `/countries/`+ country: `/`}`,
-        // headers: {
-        //  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-        // },
+        headers: { 
+         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        },
+        proxy: {
+          protocol: 'http',
+          host: '147.185.238.169', 
+          port:  50002,
+          // auth: {
+          //   username: `this.UserName`,
+          //   password: `this.Password`
+          // }
+        }
       };
       number ? config.url = `https://temp-number.com/temporary-numbers/${country? country: `United-States`}/${number}/1` : ""
       const response = await axios(config)
