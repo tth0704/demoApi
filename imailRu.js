@@ -263,7 +263,7 @@ const imailRu = {
             //   password: 'this.Password',
             // },
           // },
-          proxy: `http://147.185.238.169:50002`
+          proxy: `http://147.185.238.169:50002`,
         };
         // if (this.UserName) {
         //   var auth = 'Basic ' + new Buffer(`${this.UserName.trim()}:${this.Password.trim()}`).toString('base64')
