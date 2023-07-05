@@ -251,8 +251,17 @@ const imailRu = {
         var config = {
           method: 'GET',
           url: `https://temp-number.com${country ? `/countries/` + country : `/`}`,
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+          headers: { 
+            'authority': 'temp-number.com', 
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9', 
+            'accept-language': 'en-US,en;q=0.9', 
+            'cookie': 'cf_clearance=xMn1zIdERZsxofihbCh6onU_inTaOZIMzg3wIMmxLGI-1688532044-0-250; PHPSESSID=cbcb391c8c927989031fada44eec3664; _ga_8DHDBE6JGY=GS1.1.1688532064.1.0.1688532064.60.0.0; _ga=GA1.2.198272180.1688532064; _gid=GA1.2.1759234556.1688532064; _gat_gtag_UA_138667669_9=1; __gads=ID=e612998c7cbf376d-223b8c2788e200f1:T=1688532065:RT=1688532065:S=ALNI_MZ36WLW5gM0_HHz7ZxVn2GtgUJNEw; __gpi=UID=00000c968be274b7:T=1688532065:RT=1688532065:S=ALNI_MZ2asUCYVK8KVuw68ybi_G469v14A; __cf_bm=.YTkqIyTpv8XFRpkI0h6qYU7HewZm9g73QE_3gbA8XI-1688532066-0-AStMd1CmeusGEW3oJjJt+xFupqmrYe9lsLSG5pQWT9y0ywzplEYC521xjSVvJek+4Q==', 
+            'sec-fetch-dest': 'document', 
+            'sec-fetch-mode': 'navigate', 
+            'sec-fetch-site': 'none', 
+            'sec-fetch-user': '?1', 
+            'upgrade-insecure-requests': '1', 
+            'user-agent': 'Mozilla/5.0 (Windows NT 6.2; Win32; x86) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36'
           },
           // proxy: {
           //   protocol: 'http',
