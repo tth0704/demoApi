@@ -128,6 +128,40 @@ const emailControllers = {
       res.status(500).json(error)
     }
   },
+  getNumberOnline: async (req, res) =>{
+    try {
+      const numbers = await imailRu.getNumberOnline();
+      res.status(200).json(JSON.parse(numbers))
+    } catch (error) {
+      res.status(500).json(error)
+    }
+  },
+  getMessagesFromNumberOnline: async (req, res) =>{
+    try {
+      const number = req.params.number
+      const messages = await imailRu.getNumberOnline(number);
+      res.status(200).json(JSON.parse(messages))
+    } catch (error) {
+      res.status(500).json(error)
+    }
+  },
+  getNumberReceive: async (req, res) =>{
+    try {
+      const numbers = await imailRu.getNumberReceive();
+      res.status(200).json(JSON.parse(numbers))
+    } catch (error) {
+      res.status(500).json(error)
+    }
+  },
+  getMessagesFromNumberReceive: async (req, res) =>{
+    try {
+      const number = req.params.number
+      const messages = await imailRu.getNumberReceive(number);
+      res.status(200).json(JSON.parse(messages))
+    } catch (error) {
+      res.status(500).json(error)
+    }
+  },
 }
 
 module.exports = emailControllers;

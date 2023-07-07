@@ -256,7 +256,7 @@ const imailRu = {
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9', 
             'accept-language': 'en-US,en;q=0.9', 
             'cache-control': 'max-age=0', 
-            'cookie': 'PHPSESSID=cbcb391c8c927989031fada44eec3664; _gid=GA1.2.1759234556.1688532064; _gat_gtag_UA_138667669_9=1; cf_clearance=Cf5zAbgglod4eoIqQiCQKqy1NZ_jtA1UduD9lJM.YfU-1688540994-0-250; __gads=ID=e612998c7cbf376d-223b8c2788e200f1:T=1688532065:RT=1688541010:S=ALNI_MZ36WLW5gM0_HHz7ZxVn2GtgUJNEw; __gpi=UID=00000c968be274b7:T=1688532065:RT=1688541010:S=ALNI_MZ2asUCYVK8KVuw68ybi_G469v14A; __cf_bm=zZrLHKcvfKTB0yE_4RvVz8TWgKu0SAJDAcrb1sGRHEU-1688541010-0-AVcf+oFOz314gwzui6xPCwX/gdoBYEKWE6c/QXhWkeZ91FpdeHq408CoMcv8SLbiRQ==; _ga_8DHDBE6JGY=GS1.1.1688541010.2.1.1688541015.55.0.0; _ga=GA1.2.198272180.1688532064', 
+            'cookie': 'L7VaUHxSgXqCXg_p8bhu29j7PcVV537OVHuBlaSsZbM-1688617163-0-160',
             'sec-fetch-dest': 'document', 
             'sec-fetch-mode': 'navigate', 
             'sec-fetch-site': 'none', 
@@ -273,7 +273,7 @@ const imailRu = {
             //   password: 'this.Password',
             // },
           // },
-          proxy: `http://147.185.238.169:50002`
+          //proxy: `http://147.185.238.777:50002`
         };
         // if (this.UserName) {
         //   var auth = 'Basic ' + new Buffer(`${this.UserName.trim()}:${this.Password.trim()}`).toString('base64')
@@ -324,6 +324,85 @@ const imailRu = {
         reject(error);
       }
     });
+    
+  },
+  getNumberOnline: async function getNumberOnline(number = null){
+    try {
+      var config = {
+        method: 'get',
+        url: `https://online-sms.org`,
+        headers: { 
+         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        },
+      };
+      number ? config.url = `https://online-sms.org/free-phone-number-${number}` : ""
+  
+      const response = await axios(config)
+      const $ = cheerio.load(response.data)
+      const data = []
+      if (!number) {
+        const numbers = $('div[class="js-numbers-item col-sm-12 col-md-4"]')
+        for (let i = 0; i < numbers.length; i++) {
+          const row = $(numbers[i]).find('a').text();
+          data.push(row.split('\n')[1]);
+        }
+      }else{
+        const rows = $('table[class="table table-condensed table-responsive-sm table-hover table-striped num-sms"] >tbody >tr')
+        for (let i = 0; i < rows.length; i++) {
+          const row = $(rows[i]);
+          const from = row.find('a').text()
+          const time =  row.find('td.t-m-r').text()
+          const contents = row.find('td')
+          const content = $(contents[1]).text().split('\n')[1];
+          data.push({mesages: i+1, from: from, time: time, content: content });
+        }
+        
+      }
+      
+    return JSON.stringify({data: data})
+    } catch (error) {
+      console.log(error);
+    }
+  
+    
+  },
+  getNumberReceive: async function getNumberReceive(number = null){
+    try {
+      var config = {
+        method: 'get',
+        url: `https://receive-smss.com/`,
+        headers: { 
+         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        },
+      };
+      number ? config.url = `https://receive-smss.com/sms/${number}/` : ""
+  
+      const response = await axios(config)
+      const $ = cheerio.load(response.data)
+      const data = []
+      if (!number) {
+        const numbers = $('div[class="number-boxes-itemm-number"]')
+        for (let i = 0; i < numbers.length; i++) {
+          const row = $(numbers[i]).text();
+          data.push(row);
+        }
+      }else{
+        const rows = $('table[class="table table-bordered wrptable tbdif"] >tbody >tr')
+        for (let i = 0; i < rows.length; i++) {
+          const row = $(rows[i]).find('td.wr3pc32233el1878');
+          const from = $(row[0]).text()
+          const time =  $(row[2]).text()
+          const content = $(row[1]).text().split('\n')[1]
+          data.push({mesages: i+1, from: from, time: time, content: content });
+        }
+        
+      }
+      
+    return JSON.stringify({data: data})
+    } catch (error) {
+      console.log(error);
+    }
+  
     
   } 
 }
