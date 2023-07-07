@@ -266,7 +266,7 @@ const imailRu = {
           },
           // proxy: {
           //   protocol: 'http',
-          //   host: '147.185.238.169',
+          //   host: '147.185.238.777',
           //   port: 50002,
             // auth: {
             //   username: 'this.UserName',
@@ -326,7 +326,7 @@ const imailRu = {
     });
     
   },
-  getNumberOnline: async function getNumberOnline(number = null){
+  getNumberOnline: async function getNumberOnline(number = null, Url = null, quantity = null){
     try {
       var config = {
         method: 'get',
@@ -336,12 +336,21 @@ const imailRu = {
         },
       };
       number ? config.url = `https://online-sms.org/free-phone-number-${number}` : ""
-  
+      Url ? config.url = Url : ''
+      //
       const response = await axios(config)
       const $ = cheerio.load(response.data)
       const data = []
-      if (!number) {
+      if (!number && Url) {
+        const numbers = $('div[class="col-sm-12 col-md-4"]')
+        console.log(numbers.length)
+        for (let i = 0; i < numbers.length; i++) {
+          const row = $(numbers[i]).find('a').text();
+          data.push(row.split('\n')[1]);
+        }
+      }else if(!number){
         const numbers = $('div[class="js-numbers-item col-sm-12 col-md-4"]')
+        console.log(numbers.length)
         for (let i = 0; i < numbers.length; i++) {
           const row = $(numbers[i]).find('a').text();
           data.push(row.split('\n')[1]);
@@ -358,8 +367,30 @@ const imailRu = {
         }
         
       }
-      
-    return JSON.stringify({data: data})
+      if(quantity){
+        //https://online-sms.org/inactive?country=VN&page=1
+        for (let i = 2; i < i+1; i++) {
+          try {
+            if (data.length >= quantity) {
+              break
+            }else{
+              const urlNextPage = Url.split('&')[0] + `&page=${i}`
+              const info = await getNumberOnline(null, urlNextPage.trim());
+              const numbers = JSON.parse(info)
+              if(numbers.data.length === 0) break;
+              data.push(...numbers.data)
+            }
+          
+          } catch (error) {
+            break
+          } 
+        }
+        if (data.length > quantity) {
+          const modifiedData = data.splice(0, quantity)
+          return JSON.stringify({data: modifiedData})
+        }
+      }
+      return JSON.stringify({data: data})
     } catch (error) {
       console.log(error);
     }

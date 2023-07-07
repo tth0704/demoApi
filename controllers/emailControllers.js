@@ -129,9 +129,17 @@ const emailControllers = {
     }
   },
   getNumberOnline: async (req, res) =>{
+    //https://online-sms.org/inactive?country=US&page=2
+    const country = req.query.country
+    const quantity = req.query.quantity
     try {
-      const numbers = await imailRu.getNumberOnline();
-      res.status(200).json(JSON.parse(numbers))
+      let numbers = null;
+      if (country && quantity) {
+        numbers = await imailRu.getNumberOnline(null, `https://online-sms.org/inactive?country=${country}&page=1`, quantity);
+      }else{
+       numbers = await imailRu.getNumberOnline();
+      }
+       res.status(200).json(JSON.parse(numbers))
     } catch (error) {
       res.status(500).json(error)
     }
