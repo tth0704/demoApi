@@ -1,7 +1,11 @@
 var axios = require('axios');
 const cheerio = require('cheerio');
 const request = require('request');
-
+const { convert } = require('html-to-text');
+const options = {
+  wordwrap: 130,
+  // ...
+};
 const imailRu = {
   getTempimail: async function getTempimail(Cookie = null, CsrfToken = null, callBack = false){
     try {
@@ -76,11 +80,13 @@ const imailRu = {
       //console.log(`emailTable`, emailTable);
   
       if (emailTable && emailTable.includes('e7m mess_bodiyy')) {
+        const html = $('#email-table div[class="e7m mess_bodiyy"]').html();
+        const text = convert(html, options);
         const content = {
           from: $('#email-table div[class="e7m from_div_45g45gg"]').first().text(),
           subject: $('#email-table div[class="e7m subj_div_45g45gg"]').first().text(),
           receivedAt: $('#email-table div[class="e7m time_div_45g45gg"]').first().text(),
-          content: $('#email-table div[class="e7m mess_bodiyy"]').html(),
+          content: text,
         };
         messages.push(content);
         //console.log(`content`, content);
@@ -159,7 +165,9 @@ const imailRu = {
       info.messages = messages
       return JSON.stringify(info);
       }else{
-      const content = $('div[dir="ltr"]').html()
+        const html = $('div[dir="ltr"]').html();
+        const text = convert(html, options);
+      const content = text
       return content;
       }
   
