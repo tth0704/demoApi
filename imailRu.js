@@ -434,8 +434,8 @@ const imailRu = {
         for (let i = 0; i < rows.length; i++) {
           const row = rows[i];
           const from = $(row).find('div.col-md-3.senderr>a').text();
-          const time =  $(row).find('div.col-md-6.msgg>span').text();
-          const content = $(row).find('div.col-md-3.time').text().split('Time')[1];
+          const content =  $(row).find('div.col-md-6.msgg>span').text();
+          const time = $(row).find('div.col-md-3.time').text().split('Time')[1];
           data.push({mesages: i+1, from: from, time: time, content: content });
         }
         
