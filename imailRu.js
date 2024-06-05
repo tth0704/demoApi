@@ -253,24 +253,34 @@ const imailRu = {
       console.log(error);
     }
   },
+
   getNunber: async function getNumber(country = null, number = null){
     return new Promise((resolve, reject) => {
       try {
         var config = {
           method: 'GET',
           url: `https://temp-number.com${country ? `/countries/` + country : `/`}`,
-          headers: { 
-            'authority': 'temp-number.com', 
-            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9', 
-            'accept-language': 'en-US,en;q=0.9', 
-            'cache-control': 'max-age=0', 
-            'cookie': 'cf_clearance=elrG36QJaEYdmqekhBpyqQdeIVBxHWMmvvKTkjniR8Y-1715330979-1.0.1.1-QvP.YvQl3x_Dw9vnP4QSZFAAX2DkFiYBl3aBK_KqngarnbNZTw7gAOGNVsqoZ582eiiBNFXoMIj1WCHd4r_mTw',
-            'sec-fetch-dest': 'document', 
-            'sec-fetch-mode': 'navigate', 
-            'sec-fetch-site': 'none', 
-            'sec-fetch-user': '?1', 
-            'upgrade-insecure-requests': '1', 
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+          headers: {
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'accept-language': 'vi,ru;q=0.9',
+            'cookie': 'ezosuibasgeneris-1=d200f9da-9126-4d7b-5c43-633bb81f1eac; ezux_lpl_462646=1688432853907|14fac4dd-55e3-449b-7390-0e5d0968583b|true; google-analytics_v4_cyUh___z_ga_audiences=3e414518-1145-45df-88da-cb6e75c4e4c9; _ga=GA1.1.2106403819.1715315575; PHPSESSID=2e7b9cd215c747df827dcd496c5f0de5; __gads=ID=dc4171cbc02d0493:T=1715315575:RT=1717577463:S=ALNI_Mb9TNctKgqEddpuDEL2HOJtPWjhIg; __gpi=UID=00000e15c1613772:T=1715315575:RT=1717577463:S=ALNI_MY1dgKwC949o4AVMvPnKeK8T-YZLQ; __eoi=ID=cea4007d80f77b77:T=1715315575:RT=1717577463:S=AA-AfjY4EOf676GDP5F9K4Ef7Yaj; FCNEC=%5B%5B%22AKsRol_hSyoX4xtMto4FZyhNU6M8U0f8Bi-EGQywEj1YKBPATCwL21O6-AqOFIpKraLSTUm6KTrjd9TdhYTvV9cJkj6pviFVim8blW4YucxedUlciGFYeGbJFNSF7Ut5KSK6s0W7id1Dzx2bNlc16PGMTVF5q5o4-Q%3D%3D%22%5D%2Cnull%2C%5B%5B2%2C%22%5Bnull%2C%5Bnull%2C9%2C%5B1717576523%2C388353000%5D%5D%5D%22%5D%5D%5D; _ga_8DHDBE6JGY=GS1.1.1717576528.3.1.1717577475.43.0.0; cf_clearance=LDOY7nAMIWR0zAn_bVMurFhMBsIL0j9gcrVKix9Ysyw-1717577475-1.0.1.1-0rlJtd9OnMCiEbRuIWCtAAMYi2sAicZ1B3Hr7p7KWCGZfDwdYkpgqsRQpLAfcR4KzMkQoZbbnSDnh8lqaKw.Sg; cfz_google-analytics_v4=%7B%22cyUh_engagementDuration%22%3A%7B%22v%22%3A%220%22%2C%22e%22%3A1749113542080%7D%2C%22cyUh_engagementStart%22%3A%7B%22v%22%3A1717577560457%2C%22e%22%3A1749113560122%7D%2C%22cyUh_counter%22%3A%7B%22v%22%3A%2299%22%2C%22e%22%3A1749113542080%7D%2C%22cyUh_session_counter%22%3A%7B%22v%22%3A%224%22%2C%22e%22%3A1749113542080%7D%2C%22cyUh_ga4%22%3A%7B%22v%22%3A%223e414518-1145-45df-88da-cb6e75c4e4c9%22%2C%22e%22%3A1749113542080%7D%2C%22cyUh_let%22%3A%7B%22v%22%3A%221717577542080%22%2C%22e%22%3A1749113542080%7D%2C%22cyUh_ga4sid%22%3A%7B%22v%22%3A%22314034501%22%2C%22e%22%3A1717579342080%7D%7D; Cookie_1=value; cf_clearance=kY2VNo8k..A3nnAoBummAaG3DYF6XSD6xouRqcT1Q6A-1715325895-1.0.1.1-NlxI.e46ltKqG9ER6ITxj4KHsvRCnEckKC95nv5k.6O2MOCnN3M1n1pRjgBIJqORO9BUTqIIzknJKL1ml7scIA',
+            'dnt': '1',
+            'priority': 'u=0, i',
+            'sec-ch-ua': '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
+            'sec-ch-ua-arch': '"x86"',
+            'sec-ch-ua-bitness': '"64"',
+            'sec-ch-ua-full-version': '"125.0.6422.142"',
+            'sec-ch-ua-full-version-list': '"Google Chrome";v="125.0.6422.142", "Chromium";v="125.0.6422.142", "Not.A/Brand";v="24.0.0.0"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-model': '""',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-ch-ua-platform-version': '"15.0.0"',
+            'sec-fetch-dest': 'document',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'none',
+            'sec-fetch-user': '?1',
+            'upgrade-insecure-requests': '1',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
           },
           // proxy: {
           //   protocol: 'http',
@@ -296,8 +306,8 @@ const imailRu = {
             reject(error);
           } else {
             //
-            const setCookieHeader = response.headers['cookie'];
-            console.log(`setCookieHeader`, response)
+            //const setCookieHeader = response.headers['cookie'];
+            console.log(`body`, body)
             //
             const $ = cheerio.load(body);
             const countryBox = $('div[class="col-xs-12 col-sm-4 col-md-4 col-lg-4 country-box"]')
