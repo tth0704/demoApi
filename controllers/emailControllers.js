@@ -111,6 +111,9 @@ const emailControllers = {
   },
   getNumber: async (req, res) =>{
     try {
+      //http://localhost:3000/v1/number?country=United-States
+      //router.get('/number', emailControllers.getNumber )
+      //const country = req.query.country
       const country = req.params.country
       const numbers = await imailRu.getNunber(country);
       res.status(200).json(JSON.parse(numbers))
