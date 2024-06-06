@@ -10,9 +10,9 @@ app.use(cookieParser());
 
 app.use(express.json());
 app.use("/v1", emailRoute)
-
-app.listen(process.env.PORT || 3000, ()=>{
-  console.log('Server is running')
+const port = process.env.PORT || 3000;
+app.listen(port, ()=>{
+  console.log(`Server is running ${port}`)
 })
 
 
