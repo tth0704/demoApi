@@ -42,76 +42,113 @@ const imailRu = {
     }
   },
   getGenerator: async function getEmail(email = null, path = null) {
-    try {
-      const headers = {
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'Accept-Encoding': 'gzip, deflate, br',
-        Connection: 'keep-alive',
-        Dnt: '1',
-        'Sec-Ch-Ua': '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"',
-        'Sec-Ch-Ua-Mobile': '?0',
-        'Sec-Ch-Ua-Platform': '"Windows"',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-        'Upgrade-Insecure-Requests': '1',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-      };
-  
-      if (email) {
-        headers.Cookie = `surl=${encodeURIComponent(email.split('@')[1])}%2F${encodeURIComponent(email.split('@')[0])}${path ? `%2F${encodeURIComponent(path.split('/').pop())}` : ''}`;
-      }
-  
-      let rearPath = `email-generator`
-      if(email) rearPath = email;
-      if(path) rearPath = path;
-  
-      const info = {};
-      const messages = [];
-  
-      const response = await axios.get(`https://generator.email/${rearPath}`, { headers });
-      const $ = cheerio.load(response.data);
-  
-      const emailText = $('#email_ch_text').text();
-      //console.log(`email`, emailText);
-  
-      const emailTable = $('#email-table').html();
-      //console.log(`emailTable`, emailTable);
-  
-      if (emailTable && emailTable.includes('e7m mess_bodiyy')) {
-        const html = $('#email-table div[class="e7m mess_bodiyy"]').html();
-        const text = convert(html, options);
-        const content = {
-          from: $('#email-table div[class="e7m from_div_45g45gg"]').first().text(),
-          subject: $('#email-table div[class="e7m subj_div_45g45gg"]').first().text(),
-          receivedAt: $('#email-table div[class="e7m time_div_45g45gg"]').first().text(),
-          content: text,
-        };
-        messages.push(content);
-        //console.log(`content`, content);
-      } else {
-        if (emailTable) {
-          const emailLinks = $('#email-table a');
-          for (let i = 0; i < emailLinks.length; i++) {
-            const hrefValue = $(emailLinks[i]).attr('href').substring(1);
-            const data = await getEmail(email, hrefValue);
-            messages.push(JSON.parse(data).messages[0]);
-          }
-          //console.log('Table');
-        } else {
-          //console.log(`No messages`);
-        }
-      }
-  
-      info.email = emailText;
-      info.messages = messages;
-      return JSON.stringify(info);
-    } catch (error) {
-      console.error(`error`, error);
-      throw error;
+  try {
+    const baseUrl = 'https://generator.email';
+    const [username, domain] = email?.split('@') || [];
+    const messageId = path?.split('/').pop();
+
+    const headers = {
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9,vi;q=0.8',
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+        'AppleWebKit/537.36 (KHTML, like Gecko) ' +
+        'Chrome/150.0.0.0 Safari/537.36',
+    };
+
+    // Cookie của hộp thư hoặc của thư đang mở.
+    if (email) {
+      const inboxContext = [domain, username, messageId]
+        .filter(Boolean)
+        .join('/');
+
+      headers.Cookie = `inbox_ctx=${encodeURIComponent(inboxContext)}`;
     }
-  },
+
+    // Request mở nội dung thư.
+    if (path) {
+      headers.Referer = `${baseUrl}/${email}`;
+      headers['X-Requested-With'] = 'XMLHttpRequest';
+    }
+
+    const requestPath = path || email || 'email-generator';
+
+    //console.log('GET:', `${baseUrl}/${requestPath}`);
+    //console.log('Cookie:', headers.Cookie);
+
+    const response = await axios.get(`${baseUrl}/${requestPath}`, {
+      headers,
+      timeout: 30000,
+    });
+
+    const $ = cheerio.load(response.data);
+
+    const result = {
+      email: $('#email_ch_text').text().trim() || email || '',
+      messages: [],
+    };
+
+    /*
+     * Nếu đây là trang nội dung một thư.
+     * Dùng .mess_bodiyy thay vì kiểm tra chuỗi class chính xác.
+     */
+    const messageBody = $('#email-table .mess_bodiyy').first();
+
+    if (messageBody.length) {
+      result.messages.push({
+        from: $('#email-table .from_div_45g45gg').first().text().trim(),
+        subject: $('#email-table .subj_div_45g45gg').first().text().trim(),
+        receivedAt: $('#email-table .time_div_45g45gg')
+          .first()
+          .text()
+          .trim(),
+        content: convert(messageBody.html() || '', options),
+      });
+
+      return JSON.stringify(result);
+    }
+
+    /*
+     * Nếu đây là trang danh sách hộp thư.
+     * HTML mới dùng div onclick, không còn dùng thẻ a.
+     */
+    const messagePaths = $('#email-table [onclick*="loadInboxClientSide"]')
+      .map((_, element) => {
+        const onclick = $(element).attr('onclick') || '';
+
+        return onclick.match(
+          /loadInboxClientSide\s*\(\s*['"]([^'"]+)['"]\s*\)/
+        )?.[1];
+      })
+      .get()
+      .filter(Boolean);
+
+    //console.log('Số thư:', messagePaths.length);
+
+    /*
+     * Mở lần lượt từng thư để tránh gửi quá nhiều request cùng lúc.
+     */
+    for (const messagePath of messagePaths) {
+      const messageResult = JSON.parse(
+        await getEmail(email, messagePath)
+      );
+
+      if (messageResult.messages?.length) {
+        result.messages.push(...messageResult.messages);
+      }
+    }
+
+    return JSON.stringify(result);
+  } catch (error) {
+    console.error(
+      'getGenerator error:',
+      error.response?.status,
+      error.message
+    );
+
+    throw error;
+  }
+},
   getMohmal: async function getMohmal(cookie = null, path = null){
     try {
       var config = {
