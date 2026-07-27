@@ -73,7 +73,7 @@ getGenerator: async function getEmail(email = null, path = null, meta = null) {
     const requestPath = path || email || 'email-generator';
     const requestUrl = `${baseUrl}/${requestPath}`;
 
-    console.log('GET:', requestUrl);
+    //console.log('GET:', requestUrl);
 
     const response = await axios.get(requestUrl, {
       headers,
