@@ -73,11 +73,12 @@ getGenerator: async function getEmail(email = null, path = null, meta = null) {
     const requestPath = path || email || 'email-generator';
     const requestUrl = `${baseUrl}/${requestPath}`;
 
-    //console.log('GET:', requestUrl);
+    console.log('GET:', requestUrl);
 
     const response = await axios.get(requestUrl, {
       headers,
       timeout: 30000,
+      maxRedirects: 10,
     });
 
     const $ = cheerio.load(response.data);
@@ -87,29 +88,60 @@ getGenerator: async function getEmail(email = null, path = null, meta = null) {
       messages: [],
     };
 
-    // Request mở nội dung một thư.
-    if (path) {
-      const messageBody = $('#email-table .mess_bodiyy').first();
+    /*
+     * Quan trọng:
+     * Kiểm tra nội dung thư dù path có tồn tại hay không.
+     *
+     * Trường hợp chỉ có 1 thư, request hộp thư ban đầu
+     * có thể trả thẳng nội dung .mess_bodiyy.
+     */
+    const messageBody = $('#email-table .mess_bodiyy').first();
 
-      if (messageBody.length) {
-        result.messages.push({
-          from: meta?.from || '',
-          subject: meta?.subject || '',
-          receivedAt: meta?.receivedAt || '',
-          content: convert(messageBody.html() || '', options),
-        });
-      }
+    if (messageBody.length) {
+      result.messages.push({
+        from:
+          meta?.from ||
+          $('#email-table .from_div_45g45gg')
+            .first()
+            .text()
+            .trim(),
+
+        subject:
+          meta?.subject ||
+          $('#email-table .subj_div_45g45gg')
+            .first()
+            .text()
+            .trim(),
+
+        receivedAt:
+          meta?.receivedAt ||
+          $('#email-table .time_div_45g45gg')
+            .first()
+            .text()
+            .trim(),
+
+        content: convert(messageBody.html() || '', options),
+      });
 
       return JSON.stringify(result);
     }
 
-    // Trang danh sách thư.
-    const messageRows = $(
-      '#email-table [onclick*="loadInboxClientSide"]'
-    ).toArray();
+    /*
+     * Nếu đây là request đọc thư nhưng không tìm thấy body,
+     * trả về mảng rỗng, không tiếp tục đọc như trang danh sách.
+     */
+    if (path) {
+      console.log('Không tìm thấy .mess_bodiyy:', path);
+      return JSON.stringify(result);
+    }
 
-    const messageGroups = await Promise.all(
-      messageRows.map(async (element) => {
+    /*
+     * Lấy danh sách thư từ HTML mới.
+     */
+    const messageEntries = [];
+
+    $('#email-table [onclick*="loadInboxClientSide"]').each(
+      (_, element) => {
         const row = $(element);
         const onclick = row.attr('onclick') || '';
 
@@ -118,20 +150,61 @@ getGenerator: async function getEmail(email = null, path = null, meta = null) {
         )?.[1];
 
         if (!messagePath) {
-          return [];
+          return;
         }
 
-        const messageMeta = {
-          from: row.find('.from_div_45g45gg').text().trim(),
-          subject: row.find('.subj_div_45g45gg').text().trim(),
-          receivedAt: row.find('.time_div_45g45gg').text().trim(),
-        };
+        messageEntries.push({
+          path: messagePath,
+          meta: {
+            from: row.find('.from_div_45g45gg').text().trim(),
+            subject: row.find('.subj_div_45g45gg').text().trim(),
+            receivedAt: row.find('.time_div_45g45gg').text().trim(),
+          },
+        });
+      }
+    );
 
+    /*
+     * Fallback cho HTML cũ sử dụng thẻ <a href="...">.
+     */
+    if (!messageEntries.length) {
+      $('#email-table a[href]').each((_, element) => {
+        const row = $(element);
+        const href = row.attr('href') || '';
+
+        const messagePath = href
+          .replace(/^https?:\/\/generator\.email\//i, '')
+          .replace(/^\/+/, '')
+          .trim();
+
+        if (!messagePath) {
+          return;
+        }
+
+        messageEntries.push({
+          path: messagePath,
+          meta: {
+            from: row.find('.from_div_45g45gg').text().trim(),
+            subject: row.find('.subj_div_45g45gg').text().trim(),
+            receivedAt: row.find('.time_div_45g45gg').text().trim(),
+          },
+        });
+      });
+    }
+
+    //console.log('Số thư tìm thấy:', messageEntries.length);
+
+    /*
+     * Đọc các thư song song.
+     * Promise.all vẫn giữ đúng thứ tự messageEntries.
+     */
+    const messageGroups = await Promise.all(
+      messageEntries.map(async (entry) => {
         try {
           const responseData = await getEmail(
             email,
-            messagePath,
-            messageMeta
+            entry.path,
+            entry.meta
           );
 
           const messageResult =
@@ -142,7 +215,7 @@ getGenerator: async function getEmail(email = null, path = null, meta = null) {
           return messageResult.messages || [];
         } catch (error) {
           console.error('Không đọc được thư:', {
-            path: messagePath,
+            path: entry.path,
             status: error.response?.status,
             message: error.message,
           });
@@ -152,10 +225,6 @@ getGenerator: async function getEmail(email = null, path = null, meta = null) {
       })
     );
 
-    /*
-     * Promise.all giữ nguyên thứ tự messageRows.
-     * flat() gộp [[mail1], [mail2]] thành [mail1, mail2].
-     */
     result.messages = messageGroups.flat();
 
     return JSON.stringify(result);
@@ -163,6 +232,7 @@ getGenerator: async function getEmail(email = null, path = null, meta = null) {
     console.error('getGenerator error:', {
       status: error.response?.status,
       message: error.message,
+      url: error.config?.url,
     });
 
     throw error;
